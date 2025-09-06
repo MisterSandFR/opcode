@@ -166,31 +166,36 @@ fn discover_system_installations() -> Vec<ClaudeInstallation> {
 
 /// Try using the 'which' command to find Claude
 fn try_which_command() -> Option<ClaudeInstallation> {
-    debug!("Trying 'which claude' to find binary...");
+    let cmd_name = if cfg!(target_os = "windows") { "where" } else { "which" };
+    debug!("Trying '{} claude' to find binary...", cmd_name);
 
-    match Command::new("which").arg("claude").output() {
+    match Command::new(cmd_name).arg("claude").output() {
         Ok(output) if output.status.success() => {
-            let output_str = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            let output_str = String::from_utf8_lossy(&output.stdout);
+            let first_line = output_str.lines().next()?.trim();
 
-            if output_str.is_empty() {
+            if first_line.is_empty() {
                 return None;
             }
 
-            // Parse aliased output: "claude: aliased to /path/to/claude"
-            let path = if output_str.starts_with("claude:") && output_str.contains("aliased to") {
-                output_str
+            // Parse aliased output on Unix-like systems: "claude: aliased to /path/to/claude"
+            let path = if !cfg!(target_os = "windows")
+                && first_line.starts_with("claude:")
+                && first_line.contains("aliased to")
+            {
+                first_line
                     .split("aliased to")
                     .nth(1)
-                    .map(|s| s.trim().to_string())
+                    .map(|s| s.trim().to_string())?
             } else {
-                Some(output_str)
-            }?;
+                first_line.to_string()
+            };
 
-            debug!("'which' found claude at: {}", path);
+            debug!("'{}' found claude at: {}", cmd_name, path);
 
             // Verify the path exists
             if !PathBuf::from(&path).exists() {
-                warn!("Path from 'which' does not exist: {}", path);
+                warn!("Path from '{}' does not exist: {}", cmd_name, path);
                 return None;
             }
 
@@ -200,7 +205,7 @@ fn try_which_command() -> Option<ClaudeInstallation> {
             Some(ClaudeInstallation {
                 path,
                 version,
-                source: "which".to_string(),
+                source: cmd_name.to_string(),
                 installation_type: InstallationType::System,
             })
         }
