@@ -161,7 +161,23 @@ Menu → MCP Manager → Add Server → Configure
 
 - **Claude Code CLI**: Install from [Claude's official site](https://claude.ai/code)
 
-### Release Executables Will Be Published Soon
+### Windows Build Available
+
+**Windows executable is now available!** 🎉
+
+- **Download**: The Windows build is available in the `src-tauri/target/release/` directory
+- **File**: `opcode.exe` (~15.6 MB)
+- **Requirements**: Windows 10/11 with WebView2 (usually pre-installed)
+
+### Quick Start for Windows
+
+1. **Download the executable** from the release build
+2. **Run opcode.exe** - No installation required!
+3. **First launch**: opcode will detect your `~/.claude` directory automatically
+
+### Other Platforms
+
+Release executables for macOS and Linux will be published soon.
 
 ## 🔨 Build from Source
 
@@ -235,6 +251,13 @@ brew install pkg-config
 **Windows**
 - Install [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
 - Install [WebView2](https://developer.microsoft.com/microsoft-edge/webview2/) (usually pre-installed on Windows 11)
+- **Alternative**: Use npm instead of bun if bun is not available:
+  ```bash
+  # If bun is not installed, you can use npm
+  npm install
+  npm run build
+  npx tauri build
+  ```
 
 ### Build Steps
 
